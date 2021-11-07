@@ -1,2 +1,2 @@
 # TypescriptWebFrameworkPractice
-TypeScript Practice, Practice the full potential of Typescript on making an app
+Practice the full potential of Typescript on making a simple app without React
