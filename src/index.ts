@@ -1,11 +1,20 @@
-import { User } from './models/User'
+import { UserList } from "./view/UserList";
+import { Collection } from "./models/Collection";
+import { User, UserProps } from "./models/User";
 
-const user = new User({ id: 1 })
+const users = new Collection(
+    'http://localhost:3000/users',
+    (json: UserProps) => {
+        return User.buildUser(json)
+    }
+)
 
-// // user.save()
-user.on('change', () => {
-    console.log('change', user)
-})
+users.on('change', () => {
+    const root = document.getElementById('root')
 
-user.fetch()
-// user.events.trigger('change')
+    if (root) {
+        new UserList(root, users).render()
+    }
+});
+
+users.fetch()

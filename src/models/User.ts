@@ -1,7 +1,8 @@
-import { Eventing, Callback } from './Eventing'
-import { Sync } from './Sync'
+import { Model } from './Model'
 import { Attributes } from './Attribute'
-import { AxiosResponse } from 'axios'
+import { ApiSync } from './ApiSync'
+import { Eventing } from './Eventing'
+import { Collection } from './Collection'
 
 export interface UserProps {
     id?: number;
@@ -10,43 +11,24 @@ export interface UserProps {
 }
 const rootUrl = `http://localhost:3000/users`
 
-export class User {
-    public events: Eventing = new Eventing()
-    public sync: Sync<UserProps> = new Sync<UserProps>(rootUrl)
-    public attributes: Attributes<UserProps>;
-
-    constructor(attrs: UserProps) {
-        this.attributes = new Attributes<UserProps>(attrs);
+export class User extends Model<UserProps> {
+    static buildUser(attrs: UserProps): User {
+        return new User(
+            new Attributes<UserProps>(attrs),
+            new Eventing(),
+            new ApiSync<UserProps>(rootUrl)
+        )
     }
 
-    get on() {
-        return this.events.on;
+    static buildUserCollection(): Collection<User, UserProps> {
+        return new Collection<User, UserProps>(
+            rootUrl,
+            (json: UserProps) => User.buildUser(json)
+        ); 
     }
 
-    get trigger() {
-        return this.events.trigger
+    setRandomAge(): void {
+        const age = Math.round(Math.random() * 100);
+        this.set({ age });
     }
-
-    get get() {
-        return this.attributes.get
-    }
-
-    set (update: UserProps): void {
-        this.attributes.set(update);
-        this.events.trigger('change');
-    }
-
-    fetch(): void {
-        const id = this.attributes.get('id');
-
-        if (typeof id !== 'number') {
-            throw new Error('Cannot fetch without Id')
-        }
-
-        this.sync.fetch(id)
-            .then((res: AxiosResponse): void => {
-                this.set(res.data)
-            })
-    }
-
 }
